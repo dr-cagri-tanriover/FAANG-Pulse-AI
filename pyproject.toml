@@ -12,3 +12,6 @@ dependencies = [
     "skops >= 0.13.0"
 ]
 
+[tool.setuptools.packages.find]
+exclude = ["audits*", "support*"]
+

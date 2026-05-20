@@ -313,17 +313,25 @@ class StockDataFetcher:
 
         offset_days = 0
         days_to_fetch = 30
+        max_fetch_iterations = 10
         if start_date is not None:
             if isinstance(start_date, str):
                 start_date = pd.to_datetime(start_date)
 
             # We need the following while loop as we cannot calculate public holidays that fall on a weekday where stock market is closed!
             self.start_date = start_date
+            iterations = 0
             while len(self._data) < days_to_fetch:  # fetch data until we have at least days_to_fetch days of data
+                if iterations >= max_fetch_iterations:
+                    raise RuntimeError(
+                        f"Could not collect {days_to_fetch} trading days for {self.ticker} "
+                        f"starting {start_date.date()} after {max_fetch_iterations} fetch attempts."
+                    )
                 end_date = self.compute_a_workday_date(start_date, number_of_workdays=days_to_fetch + offset_days, direction='forward')
                 self.end_date = end_date
                 self.fetch_data()  # fetch data from yahoo finance for the specified data range.
                 offset_days += (days_to_fetch - len(self._data))
+                iterations += 1
         else:
             #end_date is not None
             if isinstance(end_date, str):
@@ -334,11 +342,18 @@ class StockDataFetcher:
 
             # We need the following while loop as we cannot calculate public holidays that fall on a weekday where stock market is closed!
             self.end_date = end_date
+            iterations = 0
             while len(self._data) < days_to_fetch:  # fetch data until we have at least days_to_fetch days of data
+                if iterations >= max_fetch_iterations:
+                    raise RuntimeError(
+                        f"Could not collect {days_to_fetch} trading days for {self.ticker} "
+                        f"ending {end_date.date()} after {max_fetch_iterations} fetch attempts."
+                    )
                 start_date = self.compute_a_workday_date(end_date, number_of_workdays=days_to_fetch + offset_days, direction='backward')
                 self.start_date = start_date
                 self.fetch_data()  # fetch data from yahoo finance for the specified data range.
                 offset_days += (days_to_fetch - len(self._data))
+                iterations += 1
 
         if len(self._data) != days_to_fetch:
             raise ValueError(f"Fetched {len(self._data)} active stock market days of data instead of {days_to_fetch}")

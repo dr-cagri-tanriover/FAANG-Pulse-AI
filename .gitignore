@@ -51,3 +51,4 @@ simple_tests.py
 .gradio/flagged/
 uv.lock
 .python-version
+audits/
