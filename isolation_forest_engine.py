@@ -11,7 +11,13 @@ class isfEngine():
     def __init__(self):
         self.histDataFilePath = Path("support/normal_vs_anomaly_isf_scores.csv")
 
-        _histDf = pd.read_csv(self.histDataFilePath)
+        try:
+            _histDf = pd.read_csv(self.histDataFilePath)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Histogram data file {self.histDataFilePath} not found. "
+                                    "Ensure the 'support/' directory is present."
+            )
+
         _histDf = _histDf.dropna(how='all', axis=1)  # Ignore columns with all NaNs
 
         _histDf = self.column_combiner(_histDf)  # Combines TREND_UP and TREND_DOWN into TRENDING column and the rest into NOT TRENDING column.
@@ -34,9 +40,13 @@ class isfEngine():
         self.isf_score_threshold =  self.slider_cfg['init']  # default threshold at the start
         self._hist_cache = None  # filled by _ensure_hist_cache(); (bin_edges, bin_centers, bin_width, counts_by_label)
 
-        unknown_types = sio.get_untrusted_types(file="optimized_isf_pipeline.skops")  # basically confirms I trust all types used.
-        self.inference_pipeline = sio.load("optimized_isf_pipeline.skops", trusted=unknown_types)  # includes scaler and pretrained model in the same package!
-
+        try:
+            unknown_types = sio.get_untrusted_types(file="optimized_isf_pipeline.skops")  # basically confirms I trust all types used.
+            self.inference_pipeline = sio.load("optimized_isf_pipeline.skops", trusted=unknown_types)  # includes scaler and pretrained model in the same package!
+        except FileNotFoundError:
+            raise FileNotFoundError("Model file 'optimized_isf_pipeline.skops' not found. "
+                                    "Pull Git LFS files with: git lfs pull"
+            )
 
     def generate_slider_values(self, num_slider_steps=100, range_min=None, range_max=None):
         all_vals = [v for lst in self.histData.values() for v in lst]
