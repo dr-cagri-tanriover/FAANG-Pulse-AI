@@ -137,7 +137,10 @@ class isfEngine():
       
         features['volatility'] = self.get_volatility_of_returns(data_30days)
 
-        features['trend_strength'] = abs(features['slope']) / features['volatility']
+        if features['volatility'] == 0.0:
+            features['trend_strength'] = float('inf') if abs(features['slope']) > 0 else 0.0  # avoiding divide by zero potential issue.
+        else:
+            features['trend_strength'] = abs(features['slope']) / features['volatility']
 
         features['gt'] = self.get_ground_truth_label(features)
 
