@@ -88,7 +88,8 @@ class StockDataFetcher:
                     auto_adjust=self.use_adjusted,
                     prepost=False,
                     threads=True,
-                    multi_level_index=False  # multi index not supported to be able to access the column names correctly
+                    multi_level_index=False,  # multi index not supported to be able to access the column names correctly
+                    timeout=15
                 )
             except Exception:
                 # yf.download() can throw an exception and exit immediately!    
@@ -153,7 +154,8 @@ class StockDataFetcher:
                             auto_adjust=self.use_adjusted,
                             prepost=False,
                             threads=True,
-                            multi_level_index=False  # multi index not supported to be able to access the column names correctly
+                            multi_level_index=False,  # multi index not supported to be able to access the column names correctly
+                            timeout=15
                         )
                     except Exception:
                         data = pd.DataFrame()  # in case of any exception, treat it as empty data and retry until max_retries is reached.
@@ -178,7 +180,8 @@ class StockDataFetcher:
                             auto_adjust=self.use_adjusted,
                             prepost=False,
                             threads=True,
-                            multi_level_index=False  # multi index not supported to be able to access the column names correctly
+                            multi_level_index=False,  # multi index not supported to be able to access the column names correctly
+                            timeout=15
                         )
                     except Exception:
                         data = pd.DataFrame()  # in case of any exception, treat it as empty data and retry until max_retries is reached.
