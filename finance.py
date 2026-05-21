@@ -158,8 +158,8 @@ class StockDataFetcher:
                             retries += 1
                             time.sleep(retry_delay_seconds)
                         else:
-                            break
                             print(f"Failed to fetch data for ticker {self.ticker} after {max_retries} retries")
+                            break
 
             else:
 
@@ -181,8 +181,8 @@ class StockDataFetcher:
                             retries += 1
                             time.sleep(retry_delay_seconds)
                         else:
-                            break
                             print(f"Failed to fetch data for ticker {self.ticker} after {max_retries} retries")
+                            break
 
             if not data.empty:
                 print("Data download completed")
