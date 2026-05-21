@@ -63,6 +63,12 @@ class isfEngine():
 
     def update_stock_selected(self, stock_selected):
         name_stock_map = {"APPLE": "AAPL", "AMAZON": "AMZN", "GOOGLE": "GOOG", "NETFLIX": "NFLX", "META (a.k.a. Facebook)": "META"}
+
+        if stock_selected not in name_stock_map:
+            raise ValueError(f"Unknown/unsupported stock selected: {stock_selected}. "
+                             f"Valid options are: {list(name_stock_map.keys())}"
+                             )
+        
         self.stock_selected = stock_selected  # Company name selected by the user.
         self.stock_ticker_selected = name_stock_map[stock_selected]  # Convert company name to its ticker symbol that will be used internally.
         return self.stock_ticker_selected
