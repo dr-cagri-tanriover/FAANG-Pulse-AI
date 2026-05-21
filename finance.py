@@ -192,7 +192,7 @@ class StockDataFetcher:
                 raise ValueError(f"No data retrieved for ticker(s): {self.ticker}")
             
         except Exception as e:
-            raise ValueError(f"Error fetching data: {str(e)}")
+            raise ValueError(f"Error fetching data for {self.ticker}: {e}") from e
 
 
     def get_ohlcv_data(
