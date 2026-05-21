@@ -76,7 +76,11 @@ class isfEngine():
     def update_date_selected(self, date_selected):
         dt_earliest_date_supported = datetime.strptime('2013-02-13', "%Y-%m-%d") # earliest date supported by the dataset
         dt_todays_date = datetime.strptime(self.todays_date, "%Y-%m-%d")
-        dt_date_selected = datetime.strptime(date_selected, "%Y-%m-%d")
+
+        try:
+            dt_date_selected = datetime.strptime(date_selected, "%Y-%m-%d")
+        except (ValueError, TypeError):
+            return self.date_selected
 
         # User specified date validation and update
         if dt_date_selected < dt_earliest_date_supported:

@@ -96,7 +96,11 @@ def read_stock_OHLCV(stock_ticker_list: list, date_selected: str):
     
     stock_prices = {}
 
-    date_obj = datetime.strptime(date_selected, "%Y-%m-%d")
+    try:
+        date_obj = datetime.strptime(date_selected, "%Y-%m-%d")
+    except (ValueError, TypeError):
+        return {"error": f"Invalid date format '{date_selected}'. Expected YYYY-MM-DD."}
+
     for eachTicker in stock_ticker_list:
         sdf.ticker = eachTicker  # update object's target ticker with the user request.
         # Each stock ticker will have a dictionary with the following keys: {"Date", "Open", "High", "Low", "Close", "Volume"}
