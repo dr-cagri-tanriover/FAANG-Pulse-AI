@@ -56,29 +56,38 @@ def QnA_UI():
 
 def run_isf_inference(ifeObj, stocks_dropdown, calendar_item, risk_slider, progress=gr.Progress()):
 
-    # Update ifeObj attributes with UI component values
-    ifeObj.date_selected = calendar_item  # default date. To be updated by the UI
-    ifeObj.update_stock_selected(stocks_dropdown)  # update's the object's attributes. (i.e. company name as well as the ticker)
-    ifeObj.isf_score_threshold =  risk_slider  # default threshold specified by the user
+    try:
+        # Update ifeObj attributes with UI component values
+        ifeObj.date_selected = calendar_item  # default date. To be updated by the UI
+        ifeObj.update_stock_selected(stocks_dropdown)  # update's the object's attributes. (i.e. company name as well as the ticker)
+        ifeObj.isf_score_threshold =  risk_slider  # default threshold specified by the user
 
-    progress(0, desc="Fetching price data from Yahoo Finance")
+        progress(0, desc="Fetching price data from Yahoo Finance")
 
-    sdf = StockDataFetcher(ticker=ifeObj.stock_ticker_selected, use_adjusted=True)  # Adjusted price to be fetched by default.
-    data = sdf.get_30workdays_frame(end_date=ifeObj.date_selected, price_type='Close')  # data  is a pandas Series. Close price is already Adjusted!
+        sdf = StockDataFetcher(ticker=ifeObj.stock_ticker_selected, use_adjusted=True)  # Adjusted price to be fetched by default.
+        data = sdf.get_30workdays_frame(end_date=ifeObj.date_selected, price_type='Close')  # data  is a pandas Series. Close price is already Adjusted!
 
-    #print(f"{data}")
-    #print(f"days fetched:{len(data)}")
+        #print(f"{data}")
+        #print(f"days fetched:{len(data)}")
 
-    progress(0.25, desc="Generating input features.")
-    features, log_prices_fig = ifeObj.generate_input_features(data)
-    print(f"Features: {features}")
+        progress(0.25, desc="Generating input features.")
+        features, log_prices_fig = ifeObj.generate_input_features(data)
+        print(f"Features: {features}")
 
-    progress(0.50, desc="Running inference.")
-    prediction_result = ifeObj.run_faang_inference(features)
+        progress(0.50, desc="Running inference.")
+        prediction_result = ifeObj.run_faang_inference(features)
 
-    progress(1, desc="Inference completed!")
-    
-    return prediction_result, log_prices_fig
+        progress(1, desc="Inference completed!")
+        
+        return prediction_result, log_prices_fig
+
+    except ValueError as e:
+        return f"Data unavailable: {e}", None
+    except RuntimeError as e:
+        return f"Fetch failed: {e}", None
+    except Exception as e:
+        print(f"[ERROR] run_isf_inference: {type(e).__name__}: {e}")
+        return "Prediction failed — please try a different date or stock.", None
 
 
 def read_stock_OHLCV(stock_ticker_list: list, date_selected: str):
