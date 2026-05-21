@@ -145,16 +145,19 @@ class StockDataFetcher:
             # Download data
             print("Data download in progress...")
             if self.period:
-                data = yf.download(
-                    tickers=self.ticker,
-                    period=self.period,
-                    auto_adjust=self.use_adjusted,
-                    prepost=False,
-                    threads=True,
-                    multi_level_index=False  # multi index not supported to be able to access the column names correctly
-                )
-
                 while True:
+                    try:
+                        data = yf.download(
+                            tickers=self.ticker,
+                            period=self.period,
+                            auto_adjust=self.use_adjusted,
+                            prepost=False,
+                            threads=True,
+                            multi_level_index=False  # multi index not supported to be able to access the column names correctly
+                        )
+                    except Exception:
+                        data = pd.DataFrame()  # in case of any exception, treat it as empty data and retry until max_retries is reached.
+
                     if not data.empty:
                         break
                     else:
@@ -166,17 +169,19 @@ class StockDataFetcher:
                             break
 
             else:
-
                 while True:
-                    data = yf.download(
-                        tickers=self.ticker,
-                        start=self.start_date,
-                        end=self.end_date,
-                        auto_adjust=self.use_adjusted,
-                        prepost=False,
-                        threads=True,
-                        multi_level_index=False  # multi index not supported to be able to access the column names correctly
-                    )
+                    try:
+                        data = yf.download(
+                            tickers=self.ticker,
+                            start=self.start_date,
+                            end=self.end_date,
+                            auto_adjust=self.use_adjusted,
+                            prepost=False,
+                            threads=True,
+                            multi_level_index=False  # multi index not supported to be able to access the column names correctly
+                        )
+                    except Exception:
+                        data = pd.DataFrame()  # in case of any exception, treat it as empty data and retry until max_retries is reached.
 
                     if not data.empty:
                         break
