@@ -75,8 +75,8 @@ class StockDataFetcher:
         max_days_to_search = 15
         current_offset_days = 0
 
-        max_retries = 5
-        retry_delay_seconds = 5.0
+        max_retries = 2
+        retry_delay_seconds = 2.0
         retries = 0
 
         while True:
