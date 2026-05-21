@@ -80,15 +80,19 @@ class StockDataFetcher:
         retries = 0
 
         while True:
-            data = yf.download(
-                tickers=self.ticker,
-                start=date_selected - timedelta(current_offset_days),  # target date to fetch data from
-                end=date_selected + timedelta(1),  # one day ahead for the Yahoo finance interface to work!
-                auto_adjust=self.use_adjusted,
-                prepost=False,
-                threads=True,
-                multi_level_index=False  # multi index not supported to be able to access the column names correctly
-            )
+            try:
+                data = yf.download(
+                    tickers=self.ticker,
+                    start=date_selected - timedelta(current_offset_days),  # target date to fetch data from
+                    end=date_selected + timedelta(1),  # one day ahead for the Yahoo finance interface to work!
+                    auto_adjust=self.use_adjusted,
+                    prepost=False,
+                    threads=True,
+                    multi_level_index=False  # multi index not supported to be able to access the column names correctly
+                )
+            except Exception:
+                # yf.download() can throw an exception and exit immediately!    
+                data = pd.DataFrame()  # in case of any exception, treat it as empty data and retry until max_retries is reached.
 
             if not data.empty:
                 break
