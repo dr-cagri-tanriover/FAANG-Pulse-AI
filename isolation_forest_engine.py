@@ -5,6 +5,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
 import skops.io as sio
+from logger_setup import get_logger
+
+logger = get_logger("engine")
 
 
 class isfEngine():
@@ -14,6 +17,7 @@ class isfEngine():
         try:
             _histDf = pd.read_csv(self.histDataFilePath)
         except FileNotFoundError:
+            logger.exception("Startup failed: histogram CSV not found at %s", self.histDataFilePath)
             raise FileNotFoundError(f"Histogram data file {self.histDataFilePath} not found. "
                                     "Ensure the 'support/' directory is present."
             )
@@ -44,6 +48,7 @@ class isfEngine():
             unknown_types = sio.get_untrusted_types(file="optimized_isf_pipeline.skops")  # basically confirms I trust all types used.
             self.inference_pipeline = sio.load("optimized_isf_pipeline.skops", trusted=unknown_types)  # includes scaler and pretrained model in the same package!
         except FileNotFoundError:
+            logger.exception("Startup failed: model file 'optimized_isf_pipeline.skops' not found")
             raise FileNotFoundError("Model file 'optimized_isf_pipeline.skops' not found. "
                                     "Pull Git LFS files with: git lfs pull"
             )
@@ -80,6 +85,7 @@ class isfEngine():
         try:
             dt_date_selected = datetime.strptime(date_selected, "%Y-%m-%d")
         except (ValueError, TypeError):
+            logger.warning("update_date_selected: invalid input %r, keeping %r", date_selected, self.date_selected)
             return self.date_selected
 
         # User specified date validation and update

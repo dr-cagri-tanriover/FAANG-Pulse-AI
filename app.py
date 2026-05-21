@@ -3,6 +3,9 @@ import gradio as gr
 import isolation_forest_engine as ife
 from datetime import datetime, timedelta
 from finance import StockDataFetcher
+from logger_setup import get_logger
+
+logger = get_logger("app")
 
 DISCLAIMER_TEXT = """
 **⚖️ LEGAL DISCLAIMER:** *The predictions provided here are **purely exploratory** and for **research purposes only**. 
@@ -86,7 +89,7 @@ def run_isf_inference(ifeObj, stocks_dropdown, calendar_item, risk_slider, progr
     except RuntimeError as e:
         return f"Fetch failed: {e}", None
     except Exception as e:
-        print(f"[ERROR] run_isf_inference: {type(e).__name__}: {e}")
+        logger.exception("Unexpected error in run_isf_inference")
         return "Prediction failed — please try a different date or stock.", None
 
 
@@ -99,6 +102,7 @@ def read_stock_OHLCV(stock_ticker_list: list, date_selected: str):
     try:
         date_obj = datetime.strptime(date_selected, "%Y-%m-%d")
     except (ValueError, TypeError):
+        logger.warning("read_stock_OHLCV: invalid date format '%s'", date_selected)
         return {"error": f"Invalid date format '{date_selected}'. Expected YYYY-MM-DD."}
 
     for eachTicker in stock_ticker_list:

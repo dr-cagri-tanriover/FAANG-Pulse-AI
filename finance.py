@@ -11,6 +11,9 @@ import numpy as np
 from datetime import datetime, timedelta
 from typing import Optional, List, Union, Dict
 import time
+from logger_setup import get_logger
+
+logger = get_logger("finance")
 
 
 
@@ -91,9 +94,10 @@ class StockDataFetcher:
                     multi_level_index=False,  # multi index not supported to be able to access the column names correctly
                     timeout=15
                 )
-            except Exception:
-                # yf.download() can throw an exception and exit immediately!    
-                data = pd.DataFrame()  # in case of any exception, treat it as empty data and retry until max_retries is reached.
+            except Exception as e:
+                # yf.download() can throw an exception and exit immediately!
+                logger.warning("fetch_last_valid_data: yf.download() raised for %s: %s", self.ticker, e)
+                data = pd.DataFrame()  # treat as empty so retry logic activates normally
 
             if not data.empty:
                 break
@@ -157,8 +161,9 @@ class StockDataFetcher:
                             multi_level_index=False,  # multi index not supported to be able to access the column names correctly
                             timeout=15
                         )
-                    except Exception:
-                        data = pd.DataFrame()  # in case of any exception, treat it as empty data and retry until max_retries is reached.
+                    except Exception as e:
+                        logger.warning("fetch_data period: yf.download() raised for %s: %s", self.ticker, e)
+                        data = pd.DataFrame()  # treat as empty so retry logic activates normally
 
                     if not data.empty:
                         break
@@ -167,6 +172,7 @@ class StockDataFetcher:
                             retries += 1
                             time.sleep(retry_delay_seconds)
                         else:
+                            logger.warning("fetch_data period: max retries exhausted for %s", self.ticker)
                             print(f"Failed to fetch data for ticker {self.ticker} after {max_retries} retries")
                             break
 
@@ -183,8 +189,9 @@ class StockDataFetcher:
                             multi_level_index=False,  # multi index not supported to be able to access the column names correctly
                             timeout=15
                         )
-                    except Exception:
-                        data = pd.DataFrame()  # in case of any exception, treat it as empty data and retry until max_retries is reached.
+                    except Exception as e:
+                        logger.warning("fetch_data start/end: yf.download() raised for %s: %s", self.ticker, e)
+                        data = pd.DataFrame()  # treat as empty so retry logic activates normally
 
                     if not data.empty:
                         break
@@ -193,6 +200,7 @@ class StockDataFetcher:
                             retries += 1
                             time.sleep(retry_delay_seconds)
                         else:
+                            logger.warning("fetch_data start/end: max retries exhausted for %s", self.ticker)
                             print(f"Failed to fetch data for ticker {self.ticker} after {max_retries} retries")
                             break
 
