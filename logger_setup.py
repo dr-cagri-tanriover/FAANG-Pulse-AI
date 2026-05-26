@@ -35,7 +35,7 @@ _handler.setFormatter(
 )
 
 _root = logging.getLogger("faang_pulse")
-_root.setLevel(logging.WARNING)
+_root.setLevel(logging.INFO)
 _root.addHandler(_handler)
 
 

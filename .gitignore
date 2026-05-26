@@ -55,3 +55,4 @@ simple_tests.py
 uv.lock
 .python-version
 audits/
+SESSION_NOTES.md

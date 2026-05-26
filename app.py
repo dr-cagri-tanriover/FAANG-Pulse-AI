@@ -82,6 +82,7 @@ def run_isf_inference(ifeObj, stocks_dropdown, calendar_item, risk_slider, progr
 
         progress(1, desc="Inference completed!")
         
+        logger.info(f"run_isf_inference: stock {ifeObj.stock_selected}, date {ifeObj.date_selected}, prediction {prediction_result}, threshold {ifeObj.isf_score_threshold}")
         return prediction_result, log_prices_fig
 
     except ValueError as e:
@@ -110,6 +111,7 @@ def read_stock_OHLCV(stock_ticker_list: list, date_selected: str):
         # Each stock ticker will have a dictionary with the following keys: {"Date", "Open", "High", "Low", "Close", "Volume"}
         stock_prices[eachTicker] = sdf.fetch_last_valid_data(date_obj)
 
+    logger.info(f"Read_stock_OHLCV: tickers {stock_ticker_list} on date {date_selected}")
     return stock_prices
 
 
