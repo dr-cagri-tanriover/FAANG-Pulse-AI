@@ -13,12 +13,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
+          fetch-depth: 0
           lfs: true
 
-      - name: Push to Hugging Face
-        uses: huggingface/hub-sync@v0.1.0
-        with:
-          github_repo_id: dr-cagri-tanriover/FAANG-Pulse-AI
-          huggingface_repo_id: ML-Owl/FAANG-Pulse-AI
-          repo_type: space
-          hf_token: ${{ secrets.HF_TOKEN }}
+      - name: Push to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: git push https://ML-Owl:$HF_TOKEN@huggingface.co/spaces/ML-Owl/FAANG-Pulse-AI main --force
