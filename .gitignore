@@ -46,7 +46,7 @@ htmlcov/
 Thumbs.db
 
 # Runtime logs
-runtime_logs.txt
+faang_pulse_ai_runtime_logs.txt
 
 # User ignore items
 main.py

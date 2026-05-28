@@ -18,5 +18,5 @@ jobs:
 
       - name: Push to Hugging Face Space
         env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push https://ML-Owl:$HF_TOKEN@huggingface.co/spaces/ML-Owl/FAANG-Pulse-AI main --force
+          TOKEN_HF_PULSE_AI: ${{ secrets.TOKEN_HF_PULSE_AI }}
+        run: git push https://ML-Owl:$TOKEN_HF_PULSE_AI@huggingface.co/spaces/ML-Owl/FAANG-Pulse-AI main --force
