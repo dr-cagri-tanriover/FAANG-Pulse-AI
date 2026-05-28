@@ -8,6 +8,7 @@ from pathlib import Path
 LOG_FILE = Path(__file__).parent / "faang_pulse_ai_runtime_logs.txt"
 MAX_BYTES = 10 * 1024 * 1024  # 10 MB
 MAX_RECORDS = 100
+_UPLOAD_EVERY = 10
 _RECORD_START = re.compile(r'(?=\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3} )')
 
 _HF_DATASET_REPO = "ML-Owl/app-runtime-logs"
@@ -61,6 +62,10 @@ class SizeCapRotatingHandler(logging.FileHandler):
     last MAX_RECORDS log records and rewrites the file from scratch with those
     records as the first entries. On HF Spaces, also uploads after each rotation."""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._emit_count = 0
+
     def handleError(self, record):
         print(
             "SizeCapRotatingHandler: emit() failed — file logging is broken:",
@@ -71,6 +76,11 @@ class SizeCapRotatingHandler(logging.FileHandler):
     def emit(self, record):
         super().emit(record)
         self.flush()
+        if _ON_HF:
+            self._emit_count += 1
+            if self._emit_count >= _UPLOAD_EVERY:
+                _upload_to_hf()
+                self._emit_count = 0
         if os.path.getsize(self.baseFilename) >= MAX_BYTES:
             self._rotate()
 
