@@ -1,6 +1,8 @@
 import logging
 import os
 import re
+import sys
+import traceback
 from pathlib import Path
 
 LOG_FILE = Path(__file__).parent / "runtime_logs.txt"
@@ -13,6 +15,13 @@ class SizeCapRotatingHandler(logging.FileHandler):
     """Appends to runtime_logs.txt; when the file exceeds MAX_BYTES, trims to the
     last MAX_RECORDS log records and rewrites the file from scratch with those records
     as the first entries."""
+
+    def handleError(self, record):
+        print(
+            "SizeCapRotatingHandler: emit() failed — file logging is broken:",
+            file=sys.stderr,
+        )
+        traceback.print_exc(file=sys.stderr)
 
     def emit(self, record):
         super().emit(record)
@@ -37,6 +46,7 @@ _handler.setFormatter(
 _root = logging.getLogger("faang_pulse")
 _root.setLevel(logging.INFO)
 _root.addHandler(_handler)
+_root.info("faang_pulse logger initialized — log file: %s", LOG_FILE)
 
 
 def get_logger(name: str) -> logging.Logger:

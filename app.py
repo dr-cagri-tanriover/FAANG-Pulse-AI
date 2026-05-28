@@ -60,6 +60,8 @@ def QnA_UI():
 def run_isf_inference(ifeObj, stocks_dropdown, calendar_item, risk_slider, progress=gr.Progress()):
 
     try:
+        logger.info("run_trend_prediction called: stock=%s, date=%s, threshold=%s", stocks_dropdown, calendar_item, risk_slider)
+
         # Update ifeObj attributes with UI component values
         ifeObj.date_selected = calendar_item  # default date. To be updated by the UI
         ifeObj.update_stock_selected(stocks_dropdown)  # update's the object's attributes. (i.e. company name as well as the ticker)
@@ -81,13 +83,15 @@ def run_isf_inference(ifeObj, stocks_dropdown, calendar_item, risk_slider, progr
         prediction_result = ifeObj.run_faang_inference(features)
 
         progress(1, desc="Inference completed!")
-        
-        logger.info(f"run_isf_inference: stock {ifeObj.stock_selected}, date {ifeObj.date_selected}, prediction {prediction_result}, threshold {ifeObj.isf_score_threshold}")
+
+        logger.info("run_trend_prediction completed: stock=%s, date=%s, prediction=%s, threshold=%s", ifeObj.stock_selected, ifeObj.date_selected, prediction_result, ifeObj.isf_score_threshold)
         return prediction_result, log_prices_fig
 
     except ValueError as e:
+        logger.warning("run_trend_prediction ValueError: stock=%s, date=%s — %s", stocks_dropdown, calendar_item, e)
         return f"Data unavailable: {e}", None
     except RuntimeError as e:
+        logger.warning("run_trend_prediction RuntimeError: stock=%s, date=%s — %s", stocks_dropdown, calendar_item, e)
         return f"Fetch failed: {e}", None
     except Exception as e:
         logger.exception("Unexpected error in run_isf_inference")
@@ -95,24 +99,29 @@ def run_isf_inference(ifeObj, stocks_dropdown, calendar_item, risk_slider, progr
 
 
 def read_stock_OHLCV(stock_ticker_list: list, date_selected: str):
-    
+
+    logger.info("get_prices_on_date called: tickers=%s, date=%s", stock_ticker_list, date_selected)
+
     sdf = StockDataFetcher(ticker="Void", use_adjusted=True)  # Adjusted price to be fetched by default.
-    
+
     stock_prices = {}
 
     try:
         date_obj = datetime.strptime(date_selected, "%Y-%m-%d")
     except (ValueError, TypeError):
-        logger.warning("read_stock_OHLCV: invalid date format '%s'", date_selected)
+        logger.warning("get_prices_on_date: invalid date format '%s'", date_selected)
         return {"error": f"Invalid date format '{date_selected}'. Expected YYYY-MM-DD."}
 
-    for eachTicker in stock_ticker_list:
-        sdf.ticker = eachTicker  # update object's target ticker with the user request.
-        # Each stock ticker will have a dictionary with the following keys: {"Date", "Open", "High", "Low", "Close", "Volume"}
-        stock_prices[eachTicker] = sdf.fetch_last_valid_data(date_obj)
-
-    logger.info(f"Read_stock_OHLCV: tickers {stock_ticker_list} on date {date_selected}")
-    return stock_prices
+    try:
+        for eachTicker in stock_ticker_list:
+            sdf.ticker = eachTicker  # update object's target ticker with the user request.
+            # Each stock ticker will have a dictionary with the following keys: {"Date", "Open", "High", "Low", "Close", "Volume"}
+            stock_prices[eachTicker] = sdf.fetch_last_valid_data(date_obj)
+        logger.info("get_prices_on_date completed: tickers=%s, date=%s", stock_ticker_list, date_selected)
+        return stock_prices
+    except Exception as e:
+        logger.exception("get_prices_on_date unexpected error: tickers=%s, date=%s", stock_ticker_list, date_selected)
+        return {"error": str(e)}
 
 
 #------------------------------------------------------------------------------------------------------------------
