@@ -61,26 +61,21 @@ def _upload_to_hf():
 
 
 def _upload_to_hf_sync():
-    """Blocking upload — called from the SIGTERM handler before process exit.
-    Uses a non-daemon thread with a 10-second join so the process does not
-    hang indefinitely if the network is unavailable."""
-    def _do():
-        try:
-            from huggingface_hub import upload_file
-            upload_file(
-                path_or_fileobj=str(LOG_FILE),
-                path_in_repo=_HF_LOG_PATH,
-                repo_id=_HF_DATASET_REPO,
-                repo_type="dataset",
-                token=os.environ.get("TOKEN_HF_PULSE_AI"),
-                commit_message="shutdown flush",
-            )
-        except Exception:
-            pass
-
-    t = threading.Thread(target=_do)
-    t.start()
-    t.join(timeout=10)
+    """Blocking inline upload — called from the watchdog thread before SIGTERM
+    and from the atexit handler on HF-initiated shutdowns. No thread spawning:
+    threading.Thread.start() is unreliable during interpreter shutdown."""
+    try:
+        from huggingface_hub import upload_file
+        upload_file(
+            path_or_fileobj=str(LOG_FILE),
+            path_in_repo=_HF_LOG_PATH,
+            repo_id=_HF_DATASET_REPO,
+            repo_type="dataset",
+            token=os.environ.get("TOKEN_HF_PULSE_AI"),
+            commit_message="shutdown flush",
+        )
+    except Exception:
+        pass
 
 
 class SizeCapRotatingHandler(logging.FileHandler):
@@ -125,12 +120,6 @@ class SizeCapRotatingHandler(logging.FileHandler):
 
 if _ON_HF:
     _restore_from_hf()
-
-    def _sigterm_handler(*_):
-        _upload_to_hf_sync()
-        sys.exit(0)
-
-    signal.signal(signal.SIGTERM, _sigterm_handler)
     atexit.register(_upload_to_hf_sync)
 
     def _inactivity_watchdog():
@@ -138,6 +127,7 @@ if _ON_HF:
         while True:
             time.sleep(60)
             if time.monotonic() - _last_activity_time >= 300:
+                _upload_to_hf_sync()
                 os.kill(os.getpid(), signal.SIGTERM)
                 break
 
