@@ -6,7 +6,7 @@ import traceback
 from pathlib import Path
 
 LOG_FILE = Path(__file__).parent / "faang_pulse_ai_runtime_logs.txt"
-MAX_BYTES = 10 * 1024 * 1024  # 10 MB
+MAX_BYTES = 1 * 1024 * 1024  # 1 MB
 MAX_RECORDS = 100
 _UPLOAD_EVERY = 10
 _RECORD_START = re.compile(r'(?=\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3} )')

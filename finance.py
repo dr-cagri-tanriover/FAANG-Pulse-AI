@@ -104,9 +104,17 @@ class StockDataFetcher:
             else:
                 if retries < max_retries:
                     retries += 1
+                    logger.warning(
+                        "fetch_last_valid_data: empty response for %s at offset -%d days, retry %d/%d",
+                        self.ticker, current_offset_days, retries, max_retries
+                    )
                     time.sleep(retry_delay_seconds)
                 else:
                     if current_offset_days < max_days_to_search:
+                        logger.warning(
+                            "fetch_last_valid_data: no data for %s at offset -%d days after %d retries, stepping back",
+                            self.ticker, current_offset_days, max_retries
+                        )
                         # Go back one day and request data again
                         current_offset_days += 1
                         retries = 0  # reset as data for a new day is requested
@@ -170,6 +178,10 @@ class StockDataFetcher:
                     else:
                         if retries < max_retries:
                             retries += 1
+                            logger.warning(
+                                "fetch_data period: empty response for %s, retry %d/%d",
+                                self.ticker, retries, max_retries
+                            )
                             time.sleep(retry_delay_seconds)
                         else:
                             logger.warning("fetch_data period: max retries exhausted for %s", self.ticker)
@@ -198,6 +210,10 @@ class StockDataFetcher:
                     else:
                         if retries < max_retries:
                             retries += 1
+                            logger.warning(
+                                "fetch_data start/end: empty response for %s, retry %d/%d",
+                                self.ticker, retries, max_retries
+                            )
                             time.sleep(retry_delay_seconds)
                         else:
                             logger.warning("fetch_data start/end: max retries exhausted for %s", self.ticker)
@@ -347,6 +363,11 @@ class StockDataFetcher:
                         f"Could not collect {days_to_fetch} trading days for {self.ticker} "
                         f"starting {start_date.date()} after {max_fetch_iterations} fetch attempts."
                     )
+                if iterations > 0:
+                    logger.warning(
+                        "get_30workdays_frame: only %d trading days returned for %s, widening window (attempt %d)",
+                        len(self._data), self.ticker, iterations + 1
+                    )
                 end_date = self.compute_a_workday_date(start_date, number_of_workdays=days_to_fetch + offset_days, direction='forward')
                 self.end_date = end_date
                 self.fetch_data()  # fetch data from yahoo finance for the specified data range.
@@ -368,6 +389,11 @@ class StockDataFetcher:
                     raise RuntimeError(
                         f"Could not collect {days_to_fetch} trading days for {self.ticker} "
                         f"ending {end_date.date()} after {max_fetch_iterations} fetch attempts."
+                    )
+                if iterations > 0:
+                    logger.warning(
+                        "get_30workdays_frame: only %d trading days returned for %s, widening window (attempt %d)",
+                        len(self._data), self.ticker, iterations + 1
                     )
                 start_date = self.compute_a_workday_date(end_date, number_of_workdays=days_to_fetch + offset_days, direction='backward')
                 self.start_date = start_date
