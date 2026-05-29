@@ -3,7 +3,7 @@ import gradio as gr
 import isolation_forest_engine as ife
 from datetime import datetime, timedelta
 from finance import StockDataFetcher
-from logger_setup import get_logger
+from logger_setup import get_logger, upload_logfile
 
 logger = get_logger("app")
 
@@ -96,6 +96,13 @@ def run_isf_inference(ifeObj, stocks_dropdown, calendar_item, risk_slider, progr
     except Exception as e:
         logger.exception("Unexpected error in run_isf_inference")
         return "Prediction failed — please try a different date or stock.", None
+
+
+def trigger_logfile_upload():
+    logger.info("upload_logfile API called")
+    result = upload_logfile()
+    logger.info("upload_logfile API result: %s", result)
+    return result
 
 
 def read_stock_OHLCV(stock_ticker_list: list, date_selected: str):
@@ -216,10 +223,21 @@ with gr.Blocks() as demo:
         api_out_stock_prices = gr.JSON(visible=False, label="Stock Prices Output", elem_id="api_json_output")
             # Virtual trigger for the backend API
         api_stock_prices_query_trigger = gr.Button(visible=False, elem_id="api_button_input")
+        api_upload_trigger = gr.Button(visible=False, elem_id="api_upload_trigger")
+        api_upload_status  = gr.Textbox(visible=False, elem_id="api_upload_status")
 
     #########################################################
 
     # EVENT LISTENERS ARE INCLUDED BELOW (these also define the APIs that will be exposed!):
+
+    # API for triggering log file upload
+    api_upload_trigger.click(
+        fn=trigger_logfile_upload,
+        inputs=[],
+        outputs=api_upload_status,
+        api_name="upload_logfile",
+        api_visibility="public"
+    )
 
     # API for fetching stock prices (virtual trigger listener)
     api_stock_prices_query_trigger.click(

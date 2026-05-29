@@ -114,6 +114,26 @@ _root.addHandler(_stream_handler)
 _root.info("faang_pulse logger initialized — log file: %s", LOG_FILE)
 
 
+def upload_logfile() -> str:
+    """Upload the log file to the HF dataset synchronously.
+    Returns a status string for the API caller."""
+    if not _ON_HF:
+        return "Not on HF Space — upload skipped."
+    try:
+        from huggingface_hub import upload_file
+        upload_file(
+            path_or_fileobj=str(LOG_FILE),
+            path_in_repo=_HF_LOG_PATH,
+            repo_id=_HF_DATASET_REPO,
+            repo_type="dataset",
+            token=os.environ.get("TOKEN_HF_PULSE_AI"),
+            commit_message="manual upload via API",
+        )
+        return "Log file uploaded successfully."
+    except Exception as e:
+        return f"Upload failed: {e}"
+
+
 def get_logger(name: str) -> logging.Logger:
     """Return a child logger under the faang_pulse hierarchy."""
     return logging.getLogger(f"faang_pulse.{name}")
